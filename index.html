@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мины Web App</title>
+    <!-- Подключаем официальный скрипт Telegram для работы Web App -->
+    <script src="https://telegram.org"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 50px); gap: 10px; justify-content: center; margin-top: 20px; }
+        .cell { width: 50px; height: 50px; background: #333; border: none; border-radius: 8px; font-size: 20px; color: white; cursor: pointer; }
+        .cell.win { background: #2ecc71; }
+        .cell.lose { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h2>💣 Игра МИНЫ (Web Версия)</h2>
+    <p>Найдите чистые ячейки!</p>
+    <div class="grid" id="grid"></div>
+
+    <script>
+        // Инициализируем Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрываем окно на весь экран Telegram
+
+        // Генерируем случайное поле: 0 - пусто, 1 - мина (всего 3 мины)
+        let field = Array(22).fill(0).concat(Array(3).fill(1));
+        field.sort(() => Math.random() - 0.5);
+
+        const gridContainer = document.getElementById('grid');
+
+        // Создаем 25 кнопок на экране
+        field.forEach((isMine, index) => {
+            const button = document.createElement('button');
+            button.className = 'cell';
+            button.innerText = '❓';
+            
+            button.onclick = () => {
+                if (isMine === 1) {
+                    button.innerText = '💥';
+                    button.classList.add('lose');
+                    // Отправляем данные назад в Python-бота, что игрок проиграл
+                    tg.sendData(JSON.stringify({ game: 'mines', status: 'lose' }));
+                    setTimeout(() => tg.close(), 1500); // Закрываем мини-апп
+                } else {
+                    button.innerText = '💎';
+                    button.classList.add('win');
+                    button.disabled = true;
+                    // Здесь можно добавить счетчик очков и кнопку "Забрать выигрыш"
+                }
+            };
+            gridContainer.appendChild(button);
+        });
+    </script>
+</body>
+</html>
